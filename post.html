@@ -1,0 +1,392 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>お知らせ投稿 | LIGARE MEDICAL FITNESS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f2f6f7;
+    --panel:#dee9eb;
+    --hero:#9ec7d0;
+    --text:#3b5c72;
+    --dark:#303b3e;
+    --card-bg:#ffffff;
+    --ok:#4a7c59;
+    --err:#c0453c;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);
+    color:var(--dark);
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    background:var(--bg);
+    padding:14px 16px;
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    border-bottom:1px solid var(--panel);
+  }
+  header .brand{
+    font-family:"Jost","Hiragino Kaku Gothic ProN",sans-serif;
+    font-weight:500;
+    font-size:15px;
+    letter-spacing:.14em;
+    color:var(--dark);
+    white-space:nowrap;
+  }
+  header button#header-preview-btn{
+    background:transparent;
+    color:var(--text);
+    border:1.5px solid rgba(168,198,205,.9);
+    border-radius:999px;
+    padding:6px 14px;
+    font-size:12px;
+    font-weight:700;
+    font-family:inherit;
+    letter-spacing:.05em;
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  main{
+    max-width:640px;
+    margin:0 auto;
+    padding:20px 12px 60px;
+  }
+  .panel{
+    background:var(--card-bg);
+    border-radius:16px;
+    padding:16px 18px;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(48,59,62,0.06);
+  }
+  .panel h2{
+    font-size:13px;
+    margin:0 0 12px;
+    color:var(--text);
+    font-weight:700;
+    letter-spacing:.06em;
+  }
+  label{
+    display:block;
+    font-size:12px;
+    font-weight:700;
+    color:var(--text);
+    margin:12px 0 4px;
+  }
+  label:first-of-type{margin-top:0;}
+  input[type=text], input[type=date], input[type=password], textarea{
+    width:100%;
+    border:1px solid var(--panel);
+    border-radius:8px;
+    padding:8px 10px;
+    font-size:14px;
+    font-family:inherit;
+    color:var(--dark);
+    background:#fbfdfd;
+  }
+  textarea{
+    min-height:110px;
+    resize:vertical;
+    line-height:1.6;
+  }
+  .hint{
+    font-size:12px;
+    color:var(--text);
+    margin-top:4px;
+    line-height:1.6;
+    opacity:.85;
+  }
+  .hint code{
+    background:var(--panel);
+    padding:1px 5px;
+    border-radius:4px;
+  }
+  .preview-label{
+    text-align:center;
+    font-size:12px;
+    color:var(--text);
+    font-weight:700;
+    letter-spacing:.08em;
+    margin-bottom:8px;
+  }
+  /* ↓ announcements.html のカード表示と同じスタイル */
+  .card{
+    background:var(--card-bg);
+    border-radius:18px;
+    overflow:hidden;
+    margin-bottom:24px;
+    box-shadow:0 2px 10px rgba(48,59,62,0.08);
+  }
+  .card img.thumb{
+    width:100%;
+    aspect-ratio:16/9;
+    object-fit:cover;
+    display:block;
+    background:var(--panel);
+  }
+  .card .card-body{ padding:16px 18px 18px; }
+  .card .date{
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.06em;
+    color:var(--text);
+  }
+  .card h2{
+    font-size:17px;
+    margin:6px 0 10px;
+    line-height:1.55;
+    color:var(--dark);
+    font-weight:700;
+  }
+  .card p.body{
+    font-size:14px;
+    line-height:1.75;
+    margin:0 0 4px;
+    color:#4a5a60;
+    white-space:pre-wrap;
+  }
+  .card a.more{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    margin-top:12px;
+    border:2px solid rgba(168,198,205,.7);
+    border-radius:999px;
+    padding:8px 18px;
+    font-size:13px;
+    font-weight:700;
+    color:var(--text);
+    text-decoration:none;
+    background:rgba(255,255,255,.6);
+  }
+  button#submit-btn{
+    width:100%;
+    background:var(--text);
+    color:#fff;
+    border:none;
+    border-radius:10px;
+    padding:12px;
+    font-size:15px;
+    font-weight:700;
+    font-family:inherit;
+    cursor:pointer;
+  }
+  button#submit-btn:disabled{ opacity:.6; cursor:default; }
+  #status-msg{ margin-top:12px; font-size:13px; font-weight:600; display:none; }
+  #status-msg.ok{ color:var(--ok); display:block; }
+  #status-msg.err{ color:var(--err); display:block; }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="brand">LIGARE MEDICAL FITNESS</span>
+  <button id="header-preview-btn">プレビュー</button>
+</header>
+
+<main>
+  <div class="panel">
+    <h2>入力</h2>
+
+    <label for="in-date">日付</label>
+    <input type="date" id="in-date">
+
+    <label for="in-title">タイトル</label>
+    <input type="text" id="in-title" placeholder="例：8月の休館日について">
+
+    <label for="in-body">本文</label>
+    <textarea id="in-body" placeholder="例：明日**8月13日(木)**は[[red+big:施設点検のため終日休館]]いたします。"></textarea>
+    <div class="hint">
+      <code>**文字**</code>で太字 /
+      <code>[[red:文字]]</code>で色（red・blue・green・orange・gray） /
+      <code>[[big:文字]]</code><code>[[small:文字]]</code>でサイズ /
+      <code>[[red+big:文字]]</code>で組み合わせ
+    </div>
+
+  </div>
+
+  <div class="preview-label">↓ 実際のお知らせページでの見え方 ↓</div>
+  <div id="preview-card"></div>
+
+  <div class="panel post-panel">
+    <label for="in-password">投稿用パスワード</label>
+    <input type="password" id="in-password">
+    <div style="margin-top:14px;">
+      <button id="submit-btn">投稿する</button>
+    </div>
+    <div id="status-msg"></div>
+  </div>
+</main>
+
+<script>
+/*
+  ===== 設定 =====
+  GAS_URL に announcements.html と同じ Google Apps Script ウェブアプリの
+  URL（.../exec）を設定してください。announcements-gas.js の doPost が
+  このフォームからの投稿を受け取り、スプレッドシートに1行追加します。
+*/
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwCx072vG7qJxT1x7g6IbsPjQkUldFSkzGGJ91UUDxWDqyUvnEHWSsbbVFH0zchZm2dgQ/exec";
+
+const BODY_COLORS = {
+  red:   "#c0453c",
+  blue:  "#2f6690",
+  green: "#4a7c59",
+  orange:"#c97c3d",
+  gray:  "#8a9aa5"
+};
+const BODY_SIZES = {
+  big:   "1.25em",
+  small: "0.85em"
+};
+
+function escapeHtml(str){
+  return String(str ?? "").replace(/[&<>"']/g, s => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[s]));
+}
+
+function formatBody(raw){
+  let text = escapeHtml(raw);
+  text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  text = text.replace(/\[\[([a-z+]+):(.+?)\]\]/gi, (_, mods, inner) => {
+    const styles = [];
+    mods.toLowerCase().split("+").forEach(mod => {
+      if(BODY_COLORS[mod]){ styles.push(`color:${BODY_COLORS[mod]}`); styles.push("font-weight:600"); }
+      if(BODY_SIZES[mod]){ styles.push(`font-size:${BODY_SIZES[mod]}`); }
+    });
+    return styles.length ? `<span style="${styles.join(";")}">${inner}</span>` : inner;
+  });
+  return text;
+}
+
+function formatDate(d){
+  if(!d) return "--.--.--";
+  const dt = new Date(d);
+  if(isNaN(dt)) return escapeHtml(d);
+  return `${String(dt.getFullYear()).slice(2)}.${String(dt.getMonth()+1).padStart(2,"0")}.${String(dt.getDate()).padStart(2,"0")}`;
+}
+
+const els = {
+  date: document.getElementById("in-date"),
+  title: document.getElementById("in-title"),
+  body: document.getElementById("in-body"),
+  password: document.getElementById("in-password"),
+  out: document.getElementById("preview-card"),
+  status: document.getElementById("status-msg"),
+  submitBtn: document.getElementById("submit-btn"),
+  pagePreviewBtn: document.getElementById("header-preview-btn")
+};
+
+/*
+  入力中の内容をURLに埋め込んで announcements.html を新しいタブで開く。
+  投稿やスプレッドシートへの保存は一切行わない、表示だけのプレビュー。
+  announcements.html と同じフォルダに置いてあることを前提に相対パスで開いている。
+*/
+function encodeDraft(obj){
+  const json = JSON.stringify(obj);
+  const bytes = new TextEncoder().encode(json);
+  let bin = "";
+  bytes.forEach(b => bin += String.fromCharCode(b));
+  return encodeURIComponent(btoa(bin));
+}
+
+function openPagePreview(){
+  const draft = {
+    date: els.date.value,
+    title: els.title.value.trim() || "（タイトル未入力）",
+    body: els.body.value
+  };
+  const encoded = encodeDraft(draft);
+  window.open(`announcements.html?preview=${encoded}`, "_blank");
+}
+
+function updatePreview(){
+  const title = els.title.value.trim() || "（タイトル未入力）";
+  const body = els.body.value;
+
+  els.out.innerHTML = `
+    <div class="card">
+      <div class="card-body">
+        <div class="date">${formatDate(els.date.value)}</div>
+        <h2>${escapeHtml(title)}</h2>
+        <p class="body">${formatBody(body)}</p>
+      </div>
+    </div>
+  `;
+}
+
+[els.date, els.title, els.body].forEach(el => {
+  el.addEventListener("input", updatePreview);
+});
+
+function showStatus(message, ok){
+  els.status.textContent = message;
+  els.status.className = ok ? "ok" : "err";
+}
+
+async function submitPost(){
+  const payload = {
+    password: els.password.value,
+    date: els.date.value,
+    title: els.title.value.trim(),
+    body: els.body.value
+  };
+
+  if(!GAS_URL){
+    showStatus("GAS_URLが未設定です。ファイル冒頭の設定欄にウェブアプリURLを入力してください。", false);
+    return;
+  }
+  if(!payload.title || !payload.body){
+    showStatus("タイトルと本文は必須です。", false);
+    return;
+  }
+  if(!payload.password){
+    showStatus("投稿用パスワードを入力してください。", false);
+    return;
+  }
+
+  els.submitBtn.disabled = true;
+  els.submitBtn.textContent = "投稿中...";
+  els.status.className = "";
+
+  try{
+    // GASのCORSプリフライトを避けるため Content-Type は text/plain で送る
+    // （サーバー側では JSON.parse(e.postData.contents) で受け取る）
+    const res = await fetch(GAS_URL, {
+      method: "POST",
+      headers: { "Content-Type": "text/plain;charset=utf-8" },
+      body: JSON.stringify(payload)
+    });
+    const data = await res.json();
+    if(data.ok){
+      showStatus("投稿しました。announcements.html を開くと反映されています。", true);
+      els.password.value = "";
+    }else{
+      showStatus(data.error || "投稿に失敗しました。", false);
+    }
+  }catch(e){
+    showStatus("通信エラーが発生しました：" + e.message, false);
+  }finally{
+    els.submitBtn.disabled = false;
+    els.submitBtn.textContent = "投稿する";
+  }
+}
+
+els.submitBtn.addEventListener("click", submitPost);
+els.pagePreviewBtn.addEventListener("click", openPagePreview);
+
+// 今日の日付を初期値にしておく
+els.date.value = new Date().toISOString().slice(0,10);
+updatePreview();
+</script>
+
+</body>
+</html>
