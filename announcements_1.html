@@ -1,0 +1,513 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>お知らせ | LIGARE MEDICAL FITNESS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f2f6f7;
+    --panel:#dee9eb;
+    --hero:#9ec7d0;
+    --text:#3b5c72;
+    --dark:#303b3e;
+    --card-bg:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);
+    color:var(--dark);
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    background:var(--bg);
+    padding:8px 16px;
+    display:flex;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:10;
+    border-bottom:1px solid var(--panel);
+  }
+  header .brand{
+    font-family:"Jost","Hiragino Kaku Gothic ProN",sans-serif;
+    font-weight:500;
+    font-size:15px;
+    letter-spacing:.14em;
+    color:#111;
+    white-space:nowrap;
+  }
+  .hero{
+    position:relative;
+    height:150px;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:var(--hero);
+    clip-path:polygon(28% 0, 100% 0, 100% 100%, 0 100%);
+  }
+  .hero .intro{
+    position:relative;
+    z-index:1;
+    max-width:640px;
+    margin:0 auto;
+    height:100%;
+    display:flex;
+    align-items:flex-end;
+    padding:0 16px 18px;
+  }
+  .hero .intro p{
+    margin:0;
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    line-height:1.7;
+    text-shadow:0 1px 4px rgba(48,59,62,0.25);
+  }
+  main{
+    max-width:640px;
+    margin:0 auto;
+    padding:20px 12px 48px;
+  }
+  #status{
+    text-align:center;
+    color:var(--text);
+    font-size:14px;
+    padding:32px 0;
+  }
+  .card{
+    position:relative;
+    background:var(--card-bg);
+    border-radius:18px;
+    overflow:hidden;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(48,59,62,0.08);
+  }
+  .card.is-preview{
+    outline:2px dashed var(--hero);
+    outline-offset:2px;
+  }
+  .card.is-preview::after{
+    content:"プレビュー（下書き）";
+    position:absolute;
+    top:10px;
+    right:10px;
+    background:var(--dark);
+    color:#fff;
+    font-size:11px;
+    font-weight:700;
+    letter-spacing:.05em;
+    padding:4px 10px;
+    border-radius:999px;
+  }
+  .preview-banner{
+    max-width:640px;
+    margin:0 auto 16px;
+    background:var(--dark);
+    color:#fff;
+    font-size:13px;
+    font-weight:600;
+    text-align:center;
+    padding:10px 16px;
+    border-radius:10px;
+  }
+  .card img.thumb{
+    width:100%;
+    aspect-ratio:16/9;
+    object-fit:cover;
+    display:block;
+    background:var(--panel);
+  }
+  .card .card-body{
+    padding:16px 18px 18px;
+  }
+  .card .date{
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.06em;
+    color:var(--text);
+  }
+  .new-badge{
+    display:inline-block;
+    margin-left:8px;
+    background:#c97c3d;
+    color:#fff;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.05em;
+    padding:2px 8px;
+    border-radius:999px;
+    vertical-align:middle;
+  }
+  .card h2{
+    font-size:17px;
+    margin:6px 0 10px;
+    line-height:1.55;
+    color:var(--dark);
+    font-weight:700;
+  }
+  .card p.body{
+    font-size:14px;
+    line-height:1.75;
+    margin:0 0 14px;
+    color:#4a5a60;
+    white-space:pre-wrap;
+    display:none;
+  }
+  .card.expanded p.body{
+    display:block;
+  }
+  .card button.more{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    border:2px solid rgba(168,198,205,.7);
+    border-radius:999px;
+    padding:8px 18px;
+    font-size:13px;
+    font-weight:700;
+    font-family:inherit;
+    color:var(--text);
+    text-decoration:none;
+    background:rgba(255,255,255,.6);
+    cursor:pointer;
+  }
+  .empty{
+    text-align:center;
+    color:var(--text);
+    padding:48px 16px;
+    font-size:14px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="brand">LIGARE MEDICAL FITNESS</span>
+</header>
+
+<div class="hero">
+  <div class="intro">
+    <p>ニュースやお知らせなど、<br>施設からの情報をお届けします</p>
+  </div>
+</div>
+
+<main>
+  <div id="preview-banner-wrap"></div>
+  <div id="status">読み込み中...</div>
+  <div id="list"></div>
+</main>
+
+<script>
+/*
+  ===== 設定 =====
+  お知らせの取得元は2つあります（速い順）:
+
+  1. CSV_URL（推奨・高速）
+     スプレッドシートを「ファイル > 共有 > ウェブに公開」でCSVとして公開すると、
+     GASの起動待ちなしに直接データを読めるので、体感速度がかなり上がります。
+     公開手順:
+       ① スプレッドシートを開く
+       ② ファイル > 共有 > ウェブに公開
+       ③ 公開するシートで「ligare_news」を選択
+       ④ 形式は「カンマ区切りの値(.csv)」を選択して公開
+       ⑤ 表示されたリンクをコピーして、下のCSV_URLに貼り付ける
+     ※ 公開すると、そのシートの内容はリンクを知っている人なら誰でも見られる
+        状態になります（今のGASの/exec URLも「全員」アクセスなので公開範囲は
+        実質変わりません）。
+     ※ 注意点: Googleの公開CSVは反映まで数分ほどタイムラグが出ることがあります。
+        投稿してすぐ画面に出したい場合は、下のGAS_URLだけ使う方が確実です。
+
+  2. GAS_URL（従来どおり・やや遅いが即時反映）
+     CSV_URLが空、またはCSVの取得に失敗した場合はこちらにフォールバックします。
+
+  どちらも空の場合は SAMPLE_DATA で表示確認できます。
+  GAS側の実装例は同梱の announcements-gas.js を参照してください。
+  スプレッドシートの列想定: date, title, body, image(任意), link(任意), id(任意・編集機能用)
+*/
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vQYh1qh_ae0o2gWF9q7FmU77pAZDd30ZUQZM5cJLmw6Hgh4a2fb2m8TwaZXu-JRPJdaoU4UoR92xM8w/pub?gid=0&single=true&output=csv"; // 例: https://docs.google.com/spreadsheets/d/e/xxxxx/pub?output=csv
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwCx072vG7qJxT1x7g6IbsPjQkUldFSkzGGJ91UUDxWDqyUvnEHWSsbbVFH0zchZm2dgQ/exec";
+
+// 直前に表示した内容をブラウザに保存しておき、次回アクセス時は待たずに
+// まずこれを表示 → 裏で最新データを取りに行って表示を差し替える
+const CACHE_KEY = "ligare_announcements_cache_v1";
+
+const SAMPLE_DATA = [
+  {
+    date: "2026-08-31",
+    title: "サンプル：夏季休業のお知らせ",
+    body: "GAS_URLを設定するまでの表示確認用サンプルです。実データはスプレッドシートから読み込まれます。",
+    image: "",
+    link: ""
+  },
+  {
+    date: "2026-08-20",
+    title: "サンプル：装飾記法の見本",
+    body: "**太字**にしたいときは前後を**で囲みます。\n[[red:注意してほしい文章]]は色をつけられます（red/blue/green/orange/grayが使えます）。\n[[big:文字を大きく]]、[[small:文字を小さく]]することもできます。\n[[red+big:色とサイズの組み合わせ]]も可能です。",
+    image: "",
+    link: "https://example.com"
+  }
+];
+
+const BODY_COLORS = {
+  red:   "#c0453c",
+  blue:  "#2f6690",
+  green: "#4a7c59",
+  orange:"#c97c3d",
+  gray:  "#8a9aa5"
+};
+const BODY_SIZES = {
+  big:   "1.25em",
+  small: "0.85em"
+};
+
+function escapeHtml(str){
+  return String(str ?? "").replace(/[&<>"']/g, s => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[s]));
+}
+
+/*
+  本文（body）の簡易装飾記法：
+    **強調したい文章**            → 太字
+    [[red:強調したい文章]]         → 色つき文字（red / blue / green / orange / gray）
+    [[big:大きくしたい文章]]       → 文字を大きく
+    [[small:小さくしたい文章]]     → 文字を小さく
+    [[red+big:目立たせたい文章]]   → 色とサイズは + でつなげて組み合わせ可能
+  ※ まず全体をエスケープしてから記法だけを変換しているので、
+    それ以外のHTMLタグを入力してもそのまま文字として表示され、安全です。
+*/
+function formatBody(raw){
+  let text = escapeHtml(raw);
+  text = text.replace(/\*\*(.+?)\*\*/g, "<strong>$1</strong>");
+  text = text.replace(/\[\[([a-z+]+):(.+?)\]\]/gi, (_, mods, inner) => {
+    const styles = [];
+    mods.toLowerCase().split("+").forEach(mod => {
+      if(BODY_COLORS[mod]){ styles.push(`color:${BODY_COLORS[mod]}`); styles.push("font-weight:600"); }
+      if(BODY_SIZES[mod]){ styles.push(`font-size:${BODY_SIZES[mod]}`); }
+    });
+    return styles.length ? `<span style="${styles.join(";")}">${inner}</span>` : inner;
+  });
+  return text;
+}
+
+function formatDate(d){
+  try{
+    const dt = new Date(d);
+    if(isNaN(dt)) return escapeHtml(d);
+    return `${String(dt.getFullYear()).slice(2)}.${String(dt.getMonth()+1).padStart(2,"0")}.${String(dt.getDate()).padStart(2,"0")}`;
+  }catch(e){ return escapeHtml(d); }
+}
+
+/*
+  投稿日から7日以内なら「NEW」マークを表示する。
+  日付だけで比較するので時刻は無視（0時基準）。
+*/
+function isRecent(d){
+  const dt = new Date(d);
+  if(isNaN(dt)) return false;
+  const target = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+  const today = new Date();
+  const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffDays = Math.round((todayOnly - target) / 86400000);
+  return diffDays >= 0 && diffDays <= 7;
+}
+
+/*
+  ===== CSV読み込み =====
+  Googleの公開CSVは本文中に改行やカンマが含まれうるため、シンプルな
+  split(",")ではなく引用符（"..."）を正しく扱うパーサーを使う。
+*/
+function parseCSV(text){
+  const rows = [];
+  let row = [];
+  let field = "";
+  let inQuotes = false;
+  for(let i = 0; i < text.length; i++){
+    const c = text[i];
+    if(inQuotes){
+      if(c === '"'){
+        if(text[i+1] === '"'){ field += '"'; i++; }
+        else { inQuotes = false; }
+      }else{
+        field += c;
+      }
+    }else{
+      if(c === '"'){ inQuotes = true; }
+      else if(c === ','){ row.push(field); field = ""; }
+      else if(c === '\r'){ /* \n側でまとめて処理するので無視 */ }
+      else if(c === '\n'){ row.push(field); rows.push(row); row = []; field = ""; }
+      else { field += c; }
+    }
+  }
+  if(field.length > 0 || row.length > 0){ row.push(field); rows.push(row); }
+  return rows;
+}
+
+function csvToItems(text){
+  const rows = parseCSV(text).filter(r => r.some(cell => String(cell).trim() !== ""));
+  if(rows.length === 0) return [];
+  const headers = rows[0].map(h => String(h).trim().toLowerCase());
+  return rows.slice(1).map(r => {
+    const item = {};
+    headers.forEach((key, i) => {
+      item[key] = r[i] !== undefined ? String(r[i]) : "";
+    });
+    return item;
+  });
+}
+
+/*
+  ===== キャッシュ =====
+  前回表示した内容をlocalStorageに保存しておく。プライベートブラウジング等で
+  保存に失敗しても表示自体は続行できるようtry/catchで囲む。
+*/
+function readCache(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed.items) ? parsed.items : null;
+  }catch(e){
+    return null;
+  }
+}
+
+function writeCache(items){
+  try{
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ items, savedAt: Date.now() }));
+  }catch(e){
+    // 保存できなくても表示には影響しないので無視
+  }
+}
+
+/*
+  データ取得元は CSV_URL → GAS_URL → SAMPLE_DATA の順に試す。
+*/
+async function fetchFreshItems(){
+  if(CSV_URL){
+    try{
+      const res = await fetch(CSV_URL, { cache: "no-store" });
+      if(!res.ok) throw new Error("csv network error");
+      const text = await res.text();
+      const items = csvToItems(text);
+      if(items.length > 0 || !GAS_URL) return items;
+    }catch(e){
+      console.error("CSVの取得に失敗しました。GASにフォールバックします", e);
+    }
+  }
+  if(GAS_URL){
+    try{
+      const res = await fetch(GAS_URL);
+      if(!res.ok) throw new Error("network error");
+      return await res.json();
+    }catch(e){
+      console.error(e);
+    }
+  }
+  return SAMPLE_DATA;
+}
+
+function render(items){
+  const list = document.getElementById("list");
+  const status = document.getElementById("status");
+  if(status) status.remove();
+
+  if(!items || items.length === 0){
+    list.innerHTML = `<div class="empty">現在お知らせはありません</div>`;
+    return;
+  }
+
+  // 新しい日付が上に来るよう並び替え
+  items.sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  list.innerHTML = items.map(item => `
+    <div class="card${item._preview ? " is-preview" : ""}">
+      ${item.image ? `<img class="thumb" src="${escapeHtml(item.image)}" alt="">` : ""}
+      <div class="card-body">
+        <div class="date">${formatDate(item.date)}${(!item._preview && isRecent(item.date)) ? '<span class="new-badge">NEW</span>' : ""}</div>
+        <h2>${escapeHtml(item.title)}</h2>
+        <p class="body">${formatBody(item.body)}</p>
+        <button type="button" class="more"${item.link ? ` data-link="${escapeHtml(item.link)}"` : ""}>続きを読む ›</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+/*
+  ===== 下書きプレビュー =====
+  post.html の「ページ全体でプレビュー」から開くと、URLに ?preview=... が付き、
+  まだ投稿していない下書きの内容をこのページの実際のレイアウトの中で確認できます。
+  （投稿もスプレッドシートへの保存も一切行われません、表示だけの機能です）
+*/
+function decodeDraft(param){
+  const bin = atob(decodeURIComponent(param));
+  const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+  return JSON.parse(new TextDecoder().decode(bytes));
+}
+
+function getPreviewDraft(){
+  const param = new URLSearchParams(location.search).get("preview");
+  if(!param) return null;
+  try{
+    const draft = decodeDraft(param);
+    draft._preview = true;
+    return draft;
+  }catch(e){
+    console.error("プレビューデータの読み込みに失敗しました", e);
+    return null;
+  }
+}
+
+/*
+  「続きを読む」ボタンの動作：
+    - link列にURLが入っている場合 → そのURLを新しいタブで開く（従来どおり）
+    - link列が空の場合           → カード内で本文を開閉する（今回の標準の動き）
+*/
+document.getElementById("list").addEventListener("click", (e) => {
+  const btn = e.target.closest(".more");
+  if(!btn) return;
+
+  const link = btn.getAttribute("data-link");
+  if(link){
+    window.open(link, "_blank", "noopener");
+    return;
+  }
+
+  const card = btn.closest(".card");
+  const expanded = card.classList.toggle("expanded");
+  btn.textContent = expanded ? "閉じる ‹" : "続きを読む ›";
+});
+
+async function load(){
+  const draft = getPreviewDraft();
+  if(draft){
+    document.getElementById("preview-banner-wrap").innerHTML =
+      `<div class="preview-banner">下書きのプレビュー中です。この内容はまだ投稿されていません。</div>`;
+  }
+
+  // 前回表示した内容があれば、通信を待たずにまずそれを表示する
+  const cached = readCache();
+  if(cached && cached.length > 0){
+    render(draft ? [draft, ...cached] : cached);
+  }
+
+  // 裏で最新データを取得し、表示を差し替える（初回訪問時はここで初めて表示される）
+  const items = await fetchFreshItems();
+  writeCache(items);
+  render(draft ? [draft, ...items] : items);
+}
+
+load();
+</script>
+
+</body>
+</html>
