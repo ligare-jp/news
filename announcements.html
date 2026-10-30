@@ -1,0 +1,361 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<title>お知らせ | LIGARE MEDICAL FITNESS</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Jost:wght@400;500&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --bg:#f2f6f7;
+    --panel:#dee9eb;
+    --hero:#9ec7d0;
+    --text:#3b5c72;
+    --dark:#303b3e;
+    --card-bg:#ffffff;
+  }
+  *{box-sizing:border-box;}
+  body{
+    margin:0;
+    font-family:"Hiragino Kaku Gothic ProN","Hiragino Sans",-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif;
+    background:var(--bg);
+    color:var(--dark);
+    -webkit-font-smoothing:antialiased;
+  }
+  header{
+    background:var(--bg);
+    padding:8px 16px;
+    display:flex;
+    align-items:center;
+    position:sticky;
+    top:0;
+    z-index:10;
+    border-bottom:1px solid var(--panel);
+  }
+  header .brand{
+    font-family:"Jost","Hiragino Kaku Gothic ProN",sans-serif;
+    font-weight:500;
+    font-size:15px;
+    letter-spacing:.14em;
+    color:#111;
+    white-space:nowrap;
+  }
+  .hero{
+    position:relative;
+    height:150px;
+    overflow:hidden;
+  }
+  .hero::before{
+    content:"";
+    position:absolute;
+    inset:0;
+    background:var(--hero);
+    clip-path:polygon(28% 0, 100% 0, 100% 100%, 0 100%);
+  }
+  .hero .intro{
+    position:relative;
+    z-index:1;
+    max-width:640px;
+    margin:0 auto;
+    height:100%;
+    display:flex;
+    align-items:flex-end;
+    padding:0 16px 18px;
+  }
+  .hero .intro p{
+    margin:0;
+    color:#fff;
+    font-size:13px;
+    font-weight:700;
+    line-height:1.7;
+    text-shadow:0 1px 4px rgba(48,59,62,0.25);
+  }
+  main{
+    max-width:640px;
+    margin:0 auto;
+    padding:20px 12px 48px;
+  }
+  #status{
+    text-align:center;
+    color:var(--text);
+    font-size:14px;
+    padding:32px 0;
+  }
+  .card{
+    position:relative;
+    background:var(--card-bg);
+    border-radius:18px;
+    overflow:hidden;
+    margin-bottom:20px;
+    box-shadow:0 2px 10px rgba(48,59,62,0.08);
+  }
+  .card img.thumb{
+    width:100%;
+    aspect-ratio:16/9;
+    object-fit:cover;
+    display:block;
+    background:var(--panel);
+  }
+  .card .card-body{
+    padding:16px 18px 18px;
+  }
+  .card .date{
+    font-size:13px;
+    font-weight:700;
+    letter-spacing:.06em;
+    color:var(--text);
+  }
+  .new-badge{
+    display:inline-block;
+    margin-left:8px;
+    background:#c97c3d;
+    color:#fff;
+    font-size:10px;
+    font-weight:700;
+    letter-spacing:.05em;
+    padding:2px 8px;
+    border-radius:999px;
+    vertical-align:middle;
+  }
+  .card h2{
+    font-size:17px;
+    margin:6px 0 10px;
+    line-height:1.55;
+    color:var(--dark);
+    font-weight:700;
+  }
+  .card p.body{
+    font-size:14px;
+    line-height:1.75;
+    margin:0 0 14px;
+    color:#4a5a60;
+    white-space:pre-wrap;
+    display:none;
+  }
+  .card.expanded p.body{
+    display:block;
+  }
+  .card button.more{
+    display:inline-flex;
+    align-items:center;
+    gap:4px;
+    border:2px solid rgba(168,198,205,.7);
+    border-radius:999px;
+    padding:8px 18px;
+    font-size:13px;
+    font-weight:700;
+    font-family:inherit;
+    color:var(--text);
+    text-decoration:none;
+    background:rgba(255,255,255,.6);
+    cursor:pointer;
+  }
+  .empty{
+    text-align:center;
+    color:var(--text);
+    padding:48px 16px;
+    font-size:14px;
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <span class="brand">LIGARE MEDICAL FITNESS</span>
+</header>
+
+<div class="hero">
+  <div class="intro">
+    <p>ニュースやお知らせなど、<br>施設からの情報をお届けします</p>
+  </div>
+</div>
+
+<main>
+  <div id="status">読み込み中...</div>
+  <div id="list"></div>
+</main>
+
+<script>
+/*
+  ===== 設定 =====
+  GAS_URL に、お知らせのスプレッドシートを読み取るGASウェブアプリの
+  URL（.../exec）を設定します。空のままだと SAMPLE_DATA で表示確認できます。
+
+  GAS側の実装は同梱の announcements-gas.js を参照してください。
+  本文（body）の太字・色・フォントサイズなどは、スプレッドシートの
+  セル内で実際に選択して装飾したとおりにそのまま表示されます
+  （特別な記法は不要です。GAS側がその書式をHTMLに変換して渡してきます）。
+
+  投稿用フォーム（post.html）は廃止しました。お知らせの追加・編集・削除は
+  スプレッドシートの行を直接編集するだけでOKです。
+*/
+const GAS_URL = "https://script.google.com/macros/s/AKfycbwCx072vG7qJxT1x7g6IbsPjQkUldFSkzGGJ91UUDxWDqyUvnEHWSsbbVFH0zchZm2dgQ/exec";
+
+// 前回表示した内容をブラウザに保存しておき、次回アクセス時は待たずに
+// まずこれを表示 → 裏で最新データを取りに行って表示を差し替える
+const CACHE_KEY = "ligare_announcements_cache_v2";
+
+const SAMPLE_DATA = [
+  {
+    date: "2026-10-30",
+    title: "サンプル：装飾の見本",
+    bodyHtml: "スプレッドシートのセルで文字を選択して、" +
+      '<span style="font-weight:700">太字</span>にしたり、' +
+      '<span style="color:#c0453c">色をつけたり</span>、' +
+      '<span style="font-size:18pt">大きさを変えたり</span>すると、' +
+      "そのままこのページにも反映されます。",
+    image: "",
+    link: ""
+  },
+  {
+    date: "2026-10-20",
+    title: "サンプル：夏季休業のお知らせ",
+    body: "GAS_URLを設定するまでの表示確認用サンプルです。実データはスプレッドシートから読み込まれます。",
+    image: "",
+    link: ""
+  }
+];
+
+function escapeHtml(str){
+  return String(str ?? "").replace(/[&<>"']/g, s => ({
+    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"
+  }[s]));
+}
+
+/*
+  bodyHtml（GAS側がスプレッドシートの実際の装飾から生成したHTML）があれば
+  それをそのまま使う。無い場合（samples など）は、プレーンテキストとして
+  エスケープしたうえで表示する。
+*/
+function formatBody(item){
+  if(item && typeof item.bodyHtml === "string" && item.bodyHtml !== ""){
+    return item.bodyHtml;
+  }
+  return escapeHtml(item && item.body);
+}
+
+function formatDate(d){
+  try{
+    const dt = new Date(d);
+    if(isNaN(dt)) return escapeHtml(d);
+    return `${String(dt.getFullYear()).slice(2)}.${String(dt.getMonth()+1).padStart(2,"0")}.${String(dt.getDate()).padStart(2,"0")}`;
+  }catch(e){ return escapeHtml(d); }
+}
+
+/*
+  投稿日から7日以内なら「NEW」マークを表示する。
+  日付だけで比較するので時刻は無視（0時基準）。
+*/
+function isRecent(d){
+  const dt = new Date(d);
+  if(isNaN(dt)) return false;
+  const target = new Date(dt.getFullYear(), dt.getMonth(), dt.getDate());
+  const today = new Date();
+  const todayOnly = new Date(today.getFullYear(), today.getMonth(), today.getDate());
+  const diffDays = Math.round((todayOnly - target) / 86400000);
+  return diffDays >= 0 && diffDays <= 7;
+}
+
+function render(items){
+  const list = document.getElementById("list");
+  const status = document.getElementById("status");
+  if(status) status.remove();
+
+  if(!items || items.length === 0){
+    list.innerHTML = `<div class="empty">現在お知らせはありません</div>`;
+    return;
+  }
+
+  // 新しい日付が上に来るよう並び替え
+  items = items.slice().sort((a,b) => new Date(b.date) - new Date(a.date));
+
+  list.innerHTML = items.map(item => `
+    <div class="card">
+      ${item.image ? `<img class="thumb" src="${escapeHtml(item.image)}" alt="">` : ""}
+      <div class="card-body">
+        <div class="date">${formatDate(item.date)}${isRecent(item.date) ? '<span class="new-badge">NEW</span>' : ""}</div>
+        <h2>${escapeHtml(item.title)}</h2>
+        <p class="body">${formatBody(item)}</p>
+        <button type="button" class="more"${item.link ? ` data-link="${escapeHtml(item.link)}"` : ""}>続きを読む ›</button>
+      </div>
+    </div>
+  `).join("");
+}
+
+/*
+  「続きを読む」ボタンの動作：
+    - link列にURLが入っている場合 → そのURLを新しいタブで開く
+    - link列が空の場合           → カード内で本文を開閉する（標準の動き）
+*/
+document.getElementById("list").addEventListener("click", (e) => {
+  const btn = e.target.closest(".more");
+  if(!btn) return;
+
+  const link = btn.getAttribute("data-link");
+  if(link){
+    window.open(link, "_blank", "noopener");
+    return;
+  }
+
+  const card = btn.closest(".card");
+  const expanded = card.classList.toggle("expanded");
+  btn.textContent = expanded ? "閉じる ‹" : "続きを読む ›";
+});
+
+/*
+  ===== キャッシュ =====
+  前回表示した内容をlocalStorageに保存しておく。プライベートブラウジング等で
+  保存に失敗しても表示自体は続行できるようtry/catchで囲む。
+*/
+function readCache(){
+  try{
+    const raw = localStorage.getItem(CACHE_KEY);
+    if(!raw) return null;
+    const parsed = JSON.parse(raw);
+    return Array.isArray(parsed.items) ? parsed.items : null;
+  }catch(e){
+    return null;
+  }
+}
+
+function writeCache(items){
+  try{
+    localStorage.setItem(CACHE_KEY, JSON.stringify({ items, savedAt: Date.now() }));
+  }catch(e){
+    // 保存できなくても表示には影響しないので無視
+  }
+}
+
+async function fetchFreshItems(){
+  if(GAS_URL){
+    try{
+      const res = await fetch(GAS_URL);
+      if(!res.ok) throw new Error("network error");
+      return await res.json();
+    }catch(e){
+      console.error(e);
+    }
+  }
+  return SAMPLE_DATA;
+}
+
+async function load(){
+  // 前回表示した内容があれば、通信を待たずにまずそれを表示する
+  const cached = readCache();
+  if(cached && cached.length > 0){
+    render(cached);
+  }
+
+  // 裏で最新データを取得し、表示を差し替える（初回訪問時はここで初めて表示される）
+  const items = await fetchFreshItems();
+  writeCache(items);
+  render(items);
+}
+
+load();
+</script>
+
+</body>
+</html>
